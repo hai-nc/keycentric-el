@@ -32,6 +32,7 @@ This library does not bind multiple commands to one key, nor does it compose key
 # Limitations
 
 -   Single point of failure. This library seeks to centralize all key-bindings into one place. However, this library will ignore any error during execution so as to avoid choking in any one place.
+-   Not straightforward to integrate with other tools on key-bindings and key-mappings (currently just using the :eval mechanism to run arbitrary code in the form).
 -   Using \`eval-after-load' for currently unavailable keymap: any misconfiguration on the key-binding may remain hidden until the feature gets loaded and error gets raised.
 -   Repetition of the keymap names for each key, due to the 1-many mapping of each key to multiple maps.
 
