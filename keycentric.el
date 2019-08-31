@@ -35,9 +35,9 @@
 
 
 (defun keycentric--list-item-maybe (item-or-list)
-  (if (and item-or-list (listp item-or-list))
-      item-or-list
-    (list item-or-list)))
+  (if (atom item-or-list)
+      (list item-or-list)
+    item-or-list))
 
 
 (defun keycentric--convert-key-to-vector (key-arg)
