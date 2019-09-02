@@ -4,7 +4,7 @@
 ;;
 ;; Author: Hai NGUYEN
 ;; Created: 2019-08-19
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Package-Requires: none
 ;; Keywords: dotemacs startup key
 ;; URL: <https://gitlab.com/haicnguyen/keycentric-el.git>, <https://github.com/haicnguyen/keycentric-el>
@@ -31,7 +31,7 @@
 
 
 ;;; Code:
-(defconst keycentric-version "0.1.0")
+(defconst keycentric-version "0.2.0")
 
 
 (defun keycentric--list-item-maybe (item-or-list)
@@ -76,34 +76,43 @@
 (defun keycentric (forms)
   "FORMS a list of key-binding forms."
   (let (keys
-        key-index
-        key
-        a-form
-        package-form
-        package-symbols
-        package-symbol)
-    (while (car forms)
-      (setf a-form (pop forms)
-            keys (mapcar #'keycentric--convert-key-to-vector
-                         (keycentric--list-item-maybe (pop a-form))))
-      (while (car a-form)
-        (setf package-form (pop a-form)
-              package-symbols (keycentric--list-item-maybe (car package-form))
-              keymap-dot-fun-forms (cdr package-form))
-        (unless (= (length package-symbols) 1)
-          (warn "keycentric(): it is not advisable to have multiple package symbols `%S' in one form `%S', as it is likely that these packages define multiple keymaps in this form, and it will not be trivial to tell which keymap coming from exactly which package in order to properly do the key-binding."
-                package-symbols
-                package-form))
-        (while (car keymap-dot-fun-forms)
-          (setf keymap-dot-fun-form (pop keymap-dot-fun-forms))
-          ;; cannot check empty list with (car package-symbols) nor use `pop' in (pop package-symbols) because package-symbols can be this special list: (nil).
-          (while (null (zerop (length package-symbols)))
-            (setf package-symbol (car package-symbols)
-                  package-symbols (cdr package-symbols)
-                  key-index (length keys))
-            (while (>= (decf key-index) 0)
-              (setf key (nth key-index keys))
-              (keycentric--parse-keymap-dot-fun-forms keymap-dot-fun-form key package-symbol))))))))
+        form-remainings
+        key-mappings
+        keymapping-form
+        fun
+        package-dot-map-pairs
+        package
+        map)
+    (condition-case the-error
+        (while forms
+          (setf form-remainings (pop forms)
+                keys (mapcar #'keycentric--convert-key-to-vector
+                             (keycentric--list-item-maybe (pop form-remainings))))
+          (while form-remainings
+            (setf key-mappings (pop form-remainings)
+                  fun (pop key-mappings))
+            (while key-mappings
+              (setf package-dot-map-pairs (pop key-mappings)
+                    package (car package-dot-map-pairs)
+                    map (cdr package-dot-map-pairs))
+              (dolist (key keys)
+                (setf
+                 keymapping-form
+                      (cond
+                       ((and (consp fun) (eq (car fun) :eval))
+                        `(let ((keycentric-key ,key)
+                               (keycentric-map ,map))
+                           ,(cadr fun)))
+                       ((symbolp fun)                        
+                        `(define-key ,map ,key ',fun))
+                       ((consp fun)
+                        `(define-key ,map ,key ,fun))
+                       (t (error "Unhandled case of function symbol %s (type %s)" fun (type-of fun)))))
+                 (if (or (null package) (featurep package))
+                     (eval keymapping-form)
+                   (eval-after-load package keymapping-form))))))
+    (error (user-error "Error during processing keymapping form %S: %S" keymapping-form (error-message-string the-error))))))
+
 
 
 (provide 'keycentric)
