@@ -178,6 +178,20 @@ Key-binding for eshell is used in the example because eshell-mode-map is a local
 
 <a id="orgee29b47"></a>
 
+
+To integrate other keymapping tools into keycentric, :eval form can be used to execute the keymapping tools's forms. The example below use mykie to map "<delete>" to act as default and "C-u <delete>" to print the message "C-u <delete>" in both global-map and org-mode-map (this form will be `eval-after-load'-ed if mykie has not yet been activated at the time of execution of this form below):
+
+```elisp
+(keycentric
+    `((("<delete>" ((:eval (mykie:set-keys keycentric-map "<delete>" 
+                            :default delete-forward-char 
+                            :C-u (message "C-u <delete>"))) 
+                    (mykie . global-map)
+                    (mykie . org-mode-map))))))
+```
+
+
+
 # References
 
 -   [bind-key.el](https://github.com/jwiegley/use-package/blob/master/bind-key.el)
