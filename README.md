@@ -11,6 +11,7 @@ This library does not bind multiple commands to one key, nor does it compose key
 
 <a id="org4264ba9"></a>
 
+
 # Features
 
 -   Easy to search and update key-bindings bound to the same key-event.
@@ -22,11 +23,12 @@ This library does not bind multiple commands to one key, nor does it compose key
 
 <a id="org5c56abd"></a>
 
+
 # Limitations
 
--   Single point of failure. This library seeks to centralize all key-bindings into one place. However, this library will ignore any error during execution so as to avoid choking in any one place.
--   Using \`eval-after-load' for currently unavailable keymap: any misconfiguration on the key-binding may remain hidden until the feature gets loaded and error gets raised.
--   Repetition of the keymap names for each key, due to the 1-many mapping of each key to multiple maps.
+- Single point of failure.
+- If user stop using a minor mode, its keybindings, if defined in the keycentric definition, will still be sitting there doing nothing unless the user comment it out.
+- Repetition of the keymap names for each key, due to the 1-many mapping of each key to multiple maps.
 
 
 <a id="orge0b9131"></a>
